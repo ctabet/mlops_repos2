@@ -1,0 +1,77 @@
+models:
+  - name: RandomForestClassifier
+    params:
+      n_estimators: { start: 500, stop: 1500, num: 10, dtype: int }
+      max_features: [ 'auto', 'log2' ]
+      max_depth: { start: 10, stop: 50, num: 11, dtype: int }
+      min_samples_split: [ 2, 5, 10 ]
+      min_samples_leaf: [ 5, 10, 15 ]
+      bootstrap: [ true, false ]
+
+  - name: XGBClassifier
+    params:
+      n_estimators: [ 3, 40 ]
+      max_depth: [ 3, 40 ]
+      learning_rate: [ 0.05, 0.4 ]
+      colsample_bytree: [ 10, 1 ]
+      subsample: [ 10, 1 ]
+      gamma: [ 0, 10 ]
+      reg_alpha: [ 0, 50 ]
+      min_child_weight: [ 0, 50 ]
+      eval_metric: [ 'logloss' ]
+      verbosity: [ 0 ]
+
+  - name: CatBoostClassifier
+    params:
+      iterations: 50
+      learning_rate: 0.03
+      depth: 6
+
+  - name: DecisionTreeClassifier
+    params:
+      max_features: [ null ]
+      max_depth: { start: 1, stop: 6, num: 3, dtype: int }
+      min_samples_split: [ 2 ]
+      min_samples_leaf: [ 1 ]
+
+  - name: LogisticRegression
+    params:
+      C: [ 0.05 ]
+      penalty: [ 'l2' ]
+      solver: [ 'liblinear' ]
+
+  - name: MultinomialNB
+    params:
+     alpha: { start: 0.5, stop: 1.5, num: 6 }
+
+  - name: LGBMClassifier
+    params:
+      n_estimators: [ 3, 40 ]
+      max_depth: { start: 10, stop: 50, num: 11, dtype: int }
+      learning_rate: [ 0.05, 0.075, 0.1 ]
+      colsample_bytree: [ 10, 1 ]
+      subsample: [ 10, 1 ]
+      reg_alpha: [ 0, 50 ]
+      min_child_weight: [ 0, 50 ]
+      min_child_samples: [ 5, 10, 15 ]
+
+  - name: ExtraTreesClassifier
+    params:
+      n_estimators: { start: 200, stop: 2000, num: 10, dtype: int }
+      max_features: [ 'auto', 'log2' ]
+      max_depth: { start: 10, stop: 50, num: 11, dtype: int }
+      min_samples_split: [ 2, 5, 10 ]
+      min_samples_leaf: [ 5, 10, 15 ]
+
+  - name: SVC
+    params:
+      C: [ 0.1, 1, 10, 100, 1000 ]
+      gamma: [ 1, 0.1, 0.01, 0.001, 0.0001 ]
+      kernel: [ 'linear' ]
+      probability: true
+
+  - name: KNeighborsClassifier
+    params:
+      leaf_size: [ 1, 50 ]
+      n_neighbors: [ 1, 50 ]
+      p: [ 1,2 ]
