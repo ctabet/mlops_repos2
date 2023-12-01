@@ -1,41 +1,57 @@
 defaults:
-  - process: process2
-  - model: model1
-  - _self_
-
-raw:
-  path: mlops_training_repo/data/raw/heart.csv
-  Label: 'target'
-  Numeric_cols_to_scale: ['age', 'trestbps', 'chol', 'thalach', 'oldpeak']
-
-processed:
-  dir: mlops_training_repo/data/processed
-  x_train:
-    name: x_train.csv
-    path: ${processed.dir}/${processed.x_train.name}
-  x_test:
-    name: x_test.csv
-    path: ${processed.dir}/${processed.x_test.name}
-  y_train:
-    name: y_train.csv
-    path: ${processed.dir}/${processed.y_train.name}
-  y_test:
-    name: y_test.csv
-    path: ${processed.dir}/${processed.y_test.name}
-
+- process: process2
+- model: model1
+- _self_
+figures:
+  dir: mlops_training_repo/reports/figures
 final:
   dir: mlops_training_repo/data/final
   name: final.csv
   path: ${final.dir}/${final.name}
-#RandomForestClassifier, XGBClassifier, CatBoostClassifier, DecisionTreeClassifier, LogisticRegression, LGBMClassifier, ExtraTreesClassifier, SVC
+mlflow_PASSWORD: 9ecdb1317a8f2ee28a0903ad3820410a56fe763e
+mlflow_USERNAME: ctabet
+mlflow_tracking_ui: https://dagshub.com/ctabet/mlops_repos2.mlflow
 model:
   dir: mlops_training_repo/models
   name: LogisticRegression
   path: ${model.dir}/${model.name}
-
-figures:
-  dir: mlops_training_repo/reports/figures
-
-mlflow_tracking_ui: https://dagshub.com/ctabet/mlops_repos.mlflow
-mlflow_USERNAME: ctabet
-mlflow_PASSWORD: 9ecdb1317a8f2ee28a0903ad3820410a56fe763e
+processed:
+  dir: mlops_training_repo/data/processed
+  x_test:
+    name: x_test.csv
+    path: ${processed.dir}/${processed.x_test.name}
+  x_train:
+    name: x_train.csv
+    path: ${processed.dir}/${processed.x_train.name}
+  y_test:
+    name: y_test.csv
+    path: ${processed.dir}/${processed.y_test.name}
+  y_train:
+    name: y_train.csv
+    path: ${processed.dir}/${processed.y_train.name}
+raw:
+  Label: target
+  Numeric_cols_to_scale:
+  - age
+  - trestbps
+  - chol
+  - thalach
+  - oldpeak
+  path: mlops_training_repo/data/raw/heart.csv
+variables:
+  categorical_variables:
+  - sex
+  - cp
+  - fbs
+  - restecg
+  - exang
+  - slope
+  - ca
+  - thal
+  - target
+  continuous_variables:
+  - age
+  - trestbps
+  - chol
+  - thalach
+  - oldpeak

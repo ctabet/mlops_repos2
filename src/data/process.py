@@ -1,4 +1,5 @@
 import os
+import joblib
 import yaml
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -11,6 +12,27 @@ class ConfigObject:
                 setattr(self, key, ConfigObject(value))
             else:
                 setattr(self, key, value)
+
+    def add_variables(self, categorical_val, continuous_val):
+        if not hasattr(self, 'variables'):
+            self.variables = ConfigObject({})  # Create a 'variables' attribute if it doesn't exist
+
+        self.variables.categorical_variables = categorical_val
+        self.variables.continuous_variables = continuous_val
+
+        # Save back to YAML
+        with open("mlops_training_repo/config/main.yaml", "w") as stream:
+            yaml.dump(self.to_dict(), stream)
+
+    def to_dict(self):
+        result = {}
+        for key, value in self.__dict__.items():
+            if isinstance(value, ConfigObject):
+                result[key] = value.to_dict()
+            else:
+                result[key] = value
+        return result
+
 
 with open("mlops_training_repo/config/main.yaml", "r") as stream:
     try:
@@ -39,6 +61,10 @@ def preproc_data(df, categorical_val):
     s_sc = StandardScaler()
     col_to_scale = config.raw.Numeric_cols_to_scale
     dataset[col_to_scale] = s_sc.fit_transform(dataset[col_to_scale])
+    joblib.dump(
+        s_sc,
+        "C:/charbel tabet/charbel/mlops_repos/mlops_training_repo/data/processed/scaler.pkl",
+    )
     return dataset
 
 def split_df(df):
@@ -49,6 +75,7 @@ def split_df(df):
 def process_data():
     df = get_data(config.raw.path)
     categorical_val, continuous_val = cat_cont_variables(df)
+    config.add_variables(categorical_val, continuous_val)
     df_processed = preproc_data(df, categorical_val)
     x_train, x_test, y_train, y_test = split_df(df_processed)
 
