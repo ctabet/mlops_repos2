@@ -1,71 +1,57 @@
-name: Deploy App
+name: CI/CD for Python Flask App
+
 on:
   push:
     branches:
-      - master
-    paths:
-      - config/**
-      - training/**
-      - application/**
-      - .github/workflows/deploy_app.yaml
+      - main
+  pull_request:
+    branches:
+      - main
+
 jobs:
-  deploy_app:
-    name: Deploy App
+  build:
     runs-on: ubuntu-latest
-    env:
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }} 
+
     steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Environment setup
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-          cache: pip
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
 
-      - name: Cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/application/requirements.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Install packages
-        run: pip install -r application/requirements.txt
+    - name: Run tests
+      run: |
+        # Insert commands to run tests here
 
-      - name: Pull data
-        run: |
-          dvc remote modify origin --local auth basic
-          dvc remote modify origin --local user ${{ secrets.DAGSHUB_USERNAME }}
-          dvc remote modify origin --local password ${{ secrets.DAGSHUB_TOKEN }}
-          dvc pull -r origin train_model
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
-      - name: Save model to BentoML local store
-        run: python application/src/save_model_to_bentoml.py
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Build Bentos
-        run: bentoml build
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
 
-      - name: Heroku login credentials
-        run: |
-          cat > ~/.netrc <<EOF
-            machine api.heroku.com
-              login $HEROKU_EMAIL
-              password $HEROKU_API_KEY
-            machine git.heroku.com
-              login $HEROKU_EMAIL
-              password $HEROKU_API_KEY
-          EOF
-        
-      - name: Login to Heroku container
-        run: heroku container:login
+    - name: Install Heroku CLI
+      run: |
+        curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
-      - name: Containerize Bentos, push it to the Heroku app, and release the app
-        run: |
-          cd $(find ~/bentoml/bentos/predict_employee/ -type d -maxdepth 1 -mindepth 1)/env/docker
-          APP_NAME=employee-predict-1
-          heroku container:push web --app $APP_NAME  --context-path=../..
-          heroku container:release web --app $APP_NAME
+    - name: Login to Heroku
+      run: heroku login -i
+
+    - name: Deploy to Heroku
+      run: |
+        heroku git:remote -a YOUR_HEROKU_APP_NAME
+        git push heroku main:main
