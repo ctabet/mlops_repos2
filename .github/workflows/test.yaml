@@ -28,10 +28,10 @@ jobs:
 
     - name: Data Preprocessing
       run: |
-        python run src/data/process.py
+        python run process.py
         # Insert commands to run tests here
     - name: Train the model
-      run: python run src/models/train_evaluate.py
+      run: python run train_evaluate.py
 
   deploy:
     needs: build
