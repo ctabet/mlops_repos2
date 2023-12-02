@@ -26,9 +26,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run tests
+    - name: Data Preprocessing
       run: |
+        python run src/data/process.py
         # Insert commands to run tests here
+    - name: Train the model
+      run: python run src/models/train_evaluate.py
 
   deploy:
     needs: build
