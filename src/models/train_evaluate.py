@@ -182,6 +182,5 @@ def train_evaluate():
     model_params = create_param_grid(model_params)
     grid_search = tune_train(model, model_params, x_train, y_train)
     evaluate_model(config, grid_search, x_test, y_test)
-
 if __name__ == '__main__':
     train_evaluate()
