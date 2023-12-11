@@ -17,7 +17,6 @@ class ConfigObject:
             else:
                 setattr(self, key, value)
 
-
     def add_variables(self, categorical_val, continuous_val):
         if not hasattr(self, "variables"):
             self.variables = ConfigObject(
