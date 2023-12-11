@@ -5,8 +5,12 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
+
 class ConfigObject:
     def __init__(self, d):
+        self.variables = None
+        self.processed = None
+        self.raw = None
         for key, value in d.items():
             if isinstance(value, dict):
                 setattr(self, key, ConfigObject(value))
@@ -14,15 +18,17 @@ class ConfigObject:
                 setattr(self, key, value)
 
     def add_variables(self, categorical_val, continuous_val):
-        if not hasattr(self, 'variables'):
-            self.variables = ConfigObject({})  # Create a 'variables' attribute if it doesn't exist
+        if not hasattr(self, "variables"):
+            self.variables = ConfigObject(
+                {}
+            )  # Create a 'variables' attribute if it doesn't exist
 
         self.variables.categorical_variables = categorical_val
         self.variables.continuous_variables = continuous_val
 
         # Save back to YAML
-        with open("mlops_training_repo/config/main.yaml", "w") as stream:
-            yaml.dump(self.to_dict(), stream)
+        with open("mlops_training_repo/config/main.yaml", "w") as cf:
+            yaml.dump(self.to_dict(), cf)
 
     def to_dict(self):
         result = {}
@@ -41,9 +47,11 @@ with open("mlops_training_repo/config/main.yaml", "r") as stream:
     except yaml.YAMLError as exc:
         print(exc)
 
+
 def get_data(raw_path: str):
     df = pd.read_csv(raw_path)
     return df
+
 
 def cat_cont_variables(df):
     categorical_val = []
@@ -55,9 +63,10 @@ def cat_cont_variables(df):
             continuous_val.append(column)
     return categorical_val, continuous_val
 
+
 def preproc_data(df, categorical_val):
-    categorical_val.remove('target')
-    dataset = pd.get_dummies(df, columns = categorical_val)
+    categorical_val.remove("target")
+    dataset = pd.get_dummies(df, columns=categorical_val)
     s_sc = StandardScaler()
     col_to_scale = config.raw.Numeric_cols_to_scale
     dataset[col_to_scale] = s_sc.fit_transform(dataset[col_to_scale])
@@ -67,10 +76,12 @@ def preproc_data(df, categorical_val):
     )
     return dataset
 
+
 def split_df(df):
     X = df.drop(config.raw.Label, axis=1)
     y = df[config.raw.Label]
     return train_test_split(X, y.values.ravel(), test_size=0.3, random_state=42)
+
 
 def process_data():
     df = get_data(config.raw.path)
@@ -98,6 +109,6 @@ def process_data():
     pd.DataFrame(x_test).to_csv(x_test_path, index=False)
     pd.DataFrame(y_test).to_csv(y_test_path, index=False)
 
-if __name__ == '__main__':
 
-    process_data(config)
+if __name__ == "__main__":
+    process_data()
