@@ -5,7 +5,6 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-
 class ConfigObject:
     def __init__(self, d):
         self.variables = None
@@ -17,7 +16,7 @@ class ConfigObject:
             else:
                 setattr(self, key, value)
 
-    def add_variables(self, categorical_val, continuous_val):
+    def add_variables(self, categorical_val, continuous_val, root_path):
         if not hasattr(self, "variables"):
             self.variables = ConfigObject(
                 {}
@@ -25,9 +24,10 @@ class ConfigObject:
 
         self.variables.categorical_variables = categorical_val
         self.variables.continuous_variables = continuous_val
+        self.variables.root_path = root_path
 
         # Save back to YAML
-        with open("mlops_training_repo/config/main.yaml", "w") as cf:
+        with open(root_path + "/config/main.yaml", "w") as cf:
             yaml.dump(self.to_dict(), cf)
 
     def to_dict(self):
@@ -39,19 +39,9 @@ class ConfigObject:
                 result[key] = value
         return result
 
-
-with open("mlops_training_repo/config/main.yaml", "r") as stream:
-    try:
-        config_dict = yaml.safe_load(stream)
-        config = ConfigObject(config_dict)
-    except yaml.YAMLError as exc:
-        print(exc)
-
-
 def get_data(raw_path: str):
     df = pd.read_csv(raw_path)
     return df
-
 
 def cat_cont_variables(df):
     categorical_val = []
@@ -63,8 +53,7 @@ def cat_cont_variables(df):
             continuous_val.append(column)
     return categorical_val, continuous_val
 
-
-def preproc_data(df, categorical_val):
+def preproc_data(df, categorical_val,config):
     categorical_val.remove("target")
     dataset = pd.get_dummies(df, columns=categorical_val)
     s_sc = StandardScaler()
@@ -72,43 +61,59 @@ def preproc_data(df, categorical_val):
     dataset[col_to_scale] = s_sc.fit_transform(dataset[col_to_scale])
     joblib.dump(
         s_sc,
-        "C:/charbel tabet/charbel/mlops_repos/mlops_training_repo/data/processed/scaler.pkl",
+        config.variables.root_path + "/data/processed/scaler.pkl",
     )
     return dataset
 
 
-def split_df(df):
+def split_df(df,config):
     X = df.drop(config.raw.Label, axis=1)
     y = df[config.raw.Label]
     return train_test_split(X, y.values.ravel(), test_size=0.3, random_state=42)
 
+def replace_placeholders(config_dict, root_path):
+    for key, value in config_dict.items():
+        if isinstance(value, dict):
+            replace_placeholders(value, root_path)
+        elif isinstance(value, str) and "${root_path}" in value:
+            config_dict[key] = value.replace("${root_path}", root_path)
 
 def process_data():
+    # Define default paths
+    local_root_path = "C:/charbel tabet/charbel/mlops_repos/mlops_training_repo"
+    github_actions_root_path = "mlops_training_repo"
+
+    # Check if running in GitHub Actions or local environment
+    is_github_actions = os.getenv("GITHUB_ACTIONS")
+
+    # Access the appropriate root path based on the environment
+    root_path = github_actions_root_path if is_github_actions else local_root_path
+    # Load the YAML file
+    with open(root_path + "/config/main.yaml", "r") as file:
+        config = yaml.safe_load(file)
+
+    # Replace placeholders with the root path
+    replace_placeholders(config, root_path)
+
+    config = ConfigObject(config)
+    config.add_variables(None, None, root_path)
     df = get_data(config.raw.path)
     categorical_val, continuous_val = cat_cont_variables(df)
-    config.add_variables(categorical_val, continuous_val)
-    df_processed = preproc_data(df, categorical_val)
-    x_train, x_test, y_train, y_test = split_df(df_processed)
+    config.add_variables(categorical_val, continuous_val, root_path)
+    df_processed = preproc_data(df, categorical_val, config)
+    x_train, x_test, y_train, y_test = split_df(df_processed, config)
+    data_frames = {
+        'x_train': pd.DataFrame(x_train),
+        'y_train': pd.DataFrame(y_train),
+        'x_test': pd.DataFrame(x_test),
+        'y_test': pd.DataFrame(y_test)
+    }
 
-    # Accessing directory and file names from the config
-    processed_dir = config.processed.dir
-    x_train_name = config.processed.x_train.name
-    y_train_name = config.processed.y_train.name
-    x_test_name = config.processed.x_test.name
-    y_test_name = config.processed.y_test.name
-
-    # Constructing the file path
-    x_train_path = os.path.join(processed_dir, x_train_name)
-    y_train_path = os.path.join(processed_dir, y_train_name)
-    x_test_path = os.path.join(processed_dir, x_test_name)
-    y_test_path = os.path.join(processed_dir, y_test_name)
-
-    # Save data
-    pd.DataFrame(x_train).to_csv(x_train_path, index=False)
-    pd.DataFrame(y_train).to_csv(y_train_path, index=False)
-    pd.DataFrame(x_test).to_csv(x_test_path, index=False)
-    pd.DataFrame(y_test).to_csv(y_test_path, index=False)
-
+    # Save data frames
+    for name, df in data_frames.items():
+        file_name = getattr(config.processed, name).name
+        file_path = os.path.join(config.processed.dir, file_name)
+        df.to_csv(file_path, index=False)
 
 if __name__ == "__main__":
     process_data()

@@ -31,30 +31,18 @@ class ConfigObject:
             else:
                 setattr(self, key, value)
 
-with open("mlops_training_repo/config/main.yaml", "r") as stream:
-    try:
-        config_dict = yaml.safe_load(stream)
-        config = ConfigObject(config_dict)
-    except yaml.YAMLError as exc:
-        print(exc)
 def load_data(config: ConfigObject):
     # Accessing directory and file names from the config
+    file_paths = [
+        getattr(config.processed, attr).name
+        for attr in ['x_train', 'y_train', 'x_test', 'y_test']]
+
+    # Constructing the file paths
     processed_dir = config.processed.dir
-    x_train_name = config.processed.x_train.name
-    y_train_name = config.processed.y_train.name
-    x_test_name = config.processed.x_test.name
-    y_test_name = config.processed.y_test.name
+    file_paths = [os.path.join(processed_dir, path) for path in file_paths]
 
-    # Constructing the file path
-    x_train_path = os.path.join(processed_dir, x_train_name)
-    y_train_path = os.path.join(processed_dir, y_train_name)
-    x_test_path = os.path.join(processed_dir, x_test_name)
-    y_test_path = os.path.join(processed_dir, y_test_name)
-
-    x_train = pd.read_csv(x_train_path)
-    y_train = pd.read_csv(y_train_path)
-    x_test = pd.read_csv(x_test_path)
-    y_test = pd.read_csv(y_test_path)
+    # Load data directly into variables
+    x_train, y_train, x_test, y_test = [pd.read_csv(file_path) for file_path in file_paths]
     return x_train, y_train, x_test, y_test
 
 def load_model_name_and_dir(config_file):
@@ -71,9 +59,9 @@ def load_model_params(params_file, model_name):
         model_params = next((item["params"] for item in config_dict["models"] if item["name"] == model_name), {})
         return model_params
 
-def load_model():
-    model_name, model_dir = load_model_name_and_dir("mlops_training_repo/config/main.yaml")
-    model_params = load_model_params("mlops_training_repo/config/model/model.yaml", model_name)
+def load_model(config):
+    model_name, model_dir = load_model_name_and_dir(config.variables.root_path + "/config/main.yaml")
+    model_params = load_model_params(config.variables.root_path + "/config/model/model.yaml", model_name)
     return model_name, model_params
 
 def create_param_grid(param_specs):
@@ -174,10 +162,32 @@ def evaluate_model(config, grid_search, x_test, y_test):
         mlflow.log_params(best_params)
         # Log the model
         mlflow.sklearn.log_model(best_model, str(model_name))
-
+def replace_placeholders(config_dict, root_path):
+    for key, value in config_dict.items():
+        if isinstance(value, dict):
+            replace_placeholders(value, root_path)
+        elif isinstance(value, str) and "${root_path}" in value:
+            config_dict[key] = value.replace("${root_path}", root_path)
 def train_evaluate():
+    # Define default paths
+    local_root_path = "C:/charbel tabet/charbel/mlops_repos/mlops_training_repo"
+    github_actions_root_path = "mlops_training_repo"
+    
+    # Check if running in GitHub Actions or local environment
+    is_github_actions = os.getenv("GITHUB_ACTIONS")
+    
+    # Access the appropriate root path based on the environment
+    root_path = github_actions_root_path if is_github_actions else local_root_path
+    # Load the YAML file
+    with open(root_path + "/config/main.yaml", "r") as file:
+        config = yaml.safe_load(file)
+    
+    # Replace placeholders with the root path
+    replace_placeholders(config, root_path)
+    
+    config = ConfigObject(config)
     x_train, y_train, x_test, y_test = load_data(config)
-    model, model_params = load_model()
+    model, model_params = load_model(config)
     model_params = create_param_grid(model_params)
     grid_search = tune_train(model, model_params, x_train, y_train)
     evaluate_model(config, grid_search, x_test, y_test)

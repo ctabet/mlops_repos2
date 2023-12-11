@@ -1,14 +1,10 @@
-defaults:
-- process: process2
-- model: model1
-- _self_
 figures:
-  dir: mlops_training_repo/reports/figures
+  dir: C:/charbel tabet/charbel/mlops_repos/mlops_training_repo/reports/figures
   processed: null
   raw: null
   variables: null
 final:
-  dir: mlops_training_repo/data/final
+  dir: C:/charbel tabet/charbel/mlops_repos/mlops_training_repo/data/final
   name: final.csv
   path: ${final.dir}/${final.name}
   processed: null
@@ -18,14 +14,14 @@ mlflow_PASSWORD: 9ecdb1317a8f2ee28a0903ad3820410a56fe763e
 mlflow_USERNAME: ctabet
 mlflow_tracking_ui: https://dagshub.com/ctabet/mlops_repos2.mlflow
 model:
-  dir: mlops_training_repo/models
+  dir: C:/charbel tabet/charbel/mlops_repos/mlops_training_repo/models
   name: LogisticRegression
   path: ${model.dir}/${model.name}
   processed: null
   raw: null
   variables: null
 processed:
-  dir: mlops_training_repo/data/processed
+  dir: C:/charbel tabet/charbel/mlops_repos/mlops_training_repo/data/processed
   processed: null
   raw: null
   variables: null
@@ -61,7 +57,7 @@ raw:
   - chol
   - thalach
   - oldpeak
-  path: mlops_training_repo/data/raw/heart.csv
+  path: C:/charbel tabet/charbel/mlops_repos/mlops_training_repo/data/raw/heart.csv
   processed: null
   raw: null
   variables: null
@@ -84,4 +80,5 @@ variables:
   - oldpeak
   processed: null
   raw: null
+  root_path: C:/charbel tabet/charbel/mlops_repos/mlops_training_repo
   variables: null
