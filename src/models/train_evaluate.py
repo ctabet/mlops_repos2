@@ -38,7 +38,6 @@ with open("mlops_training_repo/config/main.yaml", "r") as stream:
     except yaml.YAMLError as exc:
         print(exc)
 def load_data(config: ConfigObject):
-
     # Accessing directory and file names from the config
     processed_dir = config.processed.dir
     x_train_name = config.processed.x_train.name
