@@ -1,0 +1,26 @@
+name: Train Model
+
+on:
+  push:
+    branches:
+      - main  # Change this to your branch name
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # Specify your Python version
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt  # Replace with your installation command
+
+      - name: Train Model
+        run: python train.py  # Replace with your training script and its parameters
