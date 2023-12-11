@@ -23,4 +23,4 @@ jobs:
           pip install -r requirements.txt  # Replace with your installation command
 
       - name: Train Model
-        run: python train.py  # Replace with your training script and its parameters
+        run: python main.py  # Replace with your training script and its parameters
