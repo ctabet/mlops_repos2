@@ -4,4 +4,5 @@ from src.models.train_evaluate import *
 
 if __name__ == "__main__":
     process_data()
+
     train_evaluate()
