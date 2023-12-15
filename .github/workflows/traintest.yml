@@ -20,8 +20,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade 'setuptools<60.0.0'
-          pip install -r requirements.txt  # Replace with your installation command
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt  # Replace with your installation command
+
+      - name: Debugging - Check Python version
+        run: python --version
+
+      - name: Debugging - Check installed packages
+        run: python -m pip freeze
 
       - name: Train Model
         run: python main.py  # Replace with your training script and its parameters
