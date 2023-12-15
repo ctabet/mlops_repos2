@@ -14,7 +14,7 @@ deepchecks==0.6.1
 hydra-core==1.2.0
 hyperopt==0.2.7
 joblib==1.1.1
-mlflow==1.25.1
+mlflow
 numpy
 pandas==1.4.2
 pandera==0.13.4
