@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade setuptools
+          pip install --upgrade 'setuptools<60.0.0'
           pip install -r requirements.txt  # Replace with your installation command
 
       - name: Train Model
