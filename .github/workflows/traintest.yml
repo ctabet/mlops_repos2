@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirementsss.txt  # Replace with your installation command
+          pip install -r requirements.txt  # Replace with your installation command
 
       - name: Train Model
         run: python main.py  # Replace with your training script and its parameters
